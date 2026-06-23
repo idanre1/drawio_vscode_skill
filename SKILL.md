@@ -40,6 +40,38 @@ Before editing or creating a diagram:
 3. Inspect the target `.drawio` file before editing. Preserve its existing XML encoding style when practical.
 4. If the user named a file that does not exist, search nearby before creating a new one; small typos in diagram filenames are common.
 
+## Photo or Whiteboard Conversion
+
+When converting a photo, screenshot, or whiteboard sketch into `.drawio`, first choose the conversion mode.
+
+- **Reproduction mode**: Use for clean screenshots, existing diagrams, UI captures, block diagrams, or cases where the user expects a close visual match.
+- **Interpretation mode**: Use for whiteboards, rough sketches, photos with glare, crossed-out marks, ambiguous handwriting, informal brainstorming, or cases where a professional figure is more useful than a literal trace.
+
+In reproduction mode:
+
+1. Preserve the visible layout, relative spacing, labels, colors, and connector directions as closely as practical.
+2. Use direct coordinates and simple Draw.io primitives to mirror the source.
+3. Keep labels exact when they are legible.
+
+In interpretation mode:
+
+1. Extract the likely semantic components and relationships before drawing.
+2. Preserve important labels, but normalize unclear handwriting into concise engineering terms.
+3. Omit incidental marker strokes, glare, duplicated arrows, erased fragments, and low-confidence details.
+4. Use a professional palette instead of copying whiteboard marker colors exactly.
+5. Group related elements into containers if the sketch implies a boundary.
+6. Prefer clean orthogonal routing over hand-drawn curved arrows unless curvature carries meaning.
+7. Mention normalized or uncertain labels in the final response.
+
+If a handwritten label is unclear:
+
+- Use the nearest likely engineering term only when context is strong.
+- Preserve exact spelling only when it is legible.
+- Do not invent fine protocol details from ambiguous marks.
+- In the final response, list any meaningful label normalization.
+
+Before writing the diagram, state the inferred components and flows in one short working note.
+
 ## VS Code Extension Workflow
 
 ### Create or Edit XML
@@ -53,6 +85,8 @@ For simple diagrams or targeted edits, modify the `.drawio` XML directly:
 - Escape XML attribute values: `&amp;`, `&lt;`, `&gt;`, and `&quot;`.
 - Use `&#xa;` for line breaks inside labels.
 - Prefer stable ids that do not collide with existing cells.
+- Never create or edit the same `.drawio` file from parallel tool calls. Parallel reads are fine; writes to a target diagram must be serial.
+- If replacing a malformed generated diagram, delete it first, then recreate it in a separate step.
 
 Example vertex:
 
@@ -74,9 +108,31 @@ Example connector:
 
 After editing:
 
-1. Parse the XML with a local parser. In this environment, use `uv run python -c 'import xml.etree.ElementTree as ET; ET.parse("path/to/file.drawio")'` when Python is needed. If you can't find 'uv' maybe it exists in the absolute path "/home/pure_scratch/ovl2/iregev/apps/uv/uv"
-2. If the bundled validator is applicable, run it from `./drawio-skill/skills/drawio-skill/scripts/validate.py` without invoking draw.io desktop.
-3. Ask the user to open or preview the `.drawio` file in the VS Code Draw.io extension for visual review when a rendered image is required.
+1. Check the file contains exactly one XML declaration, one `<mxfile`, and one `</mxfile>`.
+2. Parse the XML with a local parser. In this environment, use `uv run python -c 'import xml.etree.ElementTree as ET; ET.parse("path/to/file.drawio")'` when Python is needed. If you can't find `uv`, try `/home/pure_scratch/ovl2/iregev/apps/uv/uv`.
+3. Verify there are no duplicate `mxCell` ids.
+4. Verify the expected labels are present.
+5. If the bundled validator is applicable, run it from `./drawio-skill/skills/drawio-skill/scripts/validate.py` without invoking draw.io desktop.
+6. Treat validator overlap warnings as acceptable only when they are intentional, such as labels inside containers or labels placed on top of arrows.
+7. Ask the user to open or preview the `.drawio` file in the VS Code Draw.io extension for visual review when a rendered image is required.
+
+Reusable validation pattern:
+
+```bash
+uv run python - <<'PY'
+from pathlib import Path
+import xml.etree.ElementTree as ET
+
+path = Path("diagram.drawio")
+text = path.read_text()
+assert text.count("<?xml") == 1
+assert text.count("<mxfile") == 1
+assert text.count("</mxfile>") == 1
+root = ET.parse(path).getroot()
+ids = [cell.attrib["id"] for cell in root.iter("mxCell") if "id" in cell.attrib]
+assert len(ids) == len(set(ids))
+PY
+```
 
 ### Preview and Review
 
