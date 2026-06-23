@@ -14,7 +14,7 @@ The names are intentionally almost the same. Use `drawio-vscode-skill` when VS C
 ## Requirements
 
 - VS Code with an active workspace
-- A Draw.io-compatible VS Code extension, such as `hediet.vscode-drawio`
+- A Draw.io-compatible VS Code extension, such as [Draw.io Integration (`hediet.vscode-drawio`)](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio)
 - Git submodule support
 
 The draw.io desktop application and CLI are not required for this wrapper skill.
