@@ -53,20 +53,6 @@ In reproduction mode:
 2. Use direct coordinates and simple Draw.io primitives to mirror the source.
 3. Keep labels exact when they are legible.
 
-### State Machine Reproduction
-
-When reproducing a state-machine or FSM diagram:
-
-- Preserve state names exactly.
-- Preserve state subtitles, guards, and queue/status predicates separately from the state name, using smaller text.
-- Prefer consistent oval sizes for peer states.
-- Preserve transition direction before optimizing layout.
-- Keep self-loops, paired opposite transitions, and large return arcs when they communicate behavior.
-- Keep transition labels close to their arrows, but avoid covering arrowheads.
-- Preserve state-output annotation boxes near their associated states.
-- Use soft status colors for output boxes, but do not let color imply new semantics.
-- Validate that every expected state and transition label exists before finishing.
-
 In interpretation mode:
 
 1. Extract the likely semantic components and relationships before drawing.
@@ -123,7 +109,7 @@ Example connector:
 After editing:
 
 1. Check the file contains exactly one XML declaration, one `<mxfile`, and one `</mxfile>`.
-2. Parse the XML with a local parser. In this environment, use `uv run python -c 'import xml.etree.ElementTree as ET; ET.parse("path/to/file.drawio")'` when Python is needed. If you can't find `uv`, try `/home/pure_scratch/ovl2/iregev/apps/uv/uv`.
+2. Parse the XML with a local parser. In this environment, use `uv run python -c 'import xml.etree.ElementTree as ET; ET.parse("path/to/file.drawio")'` when Python is needed.
 3. Verify there are no duplicate `mxCell` ids.
 4. Verify the expected labels are present.
 5. If the bundled validator is applicable, run it from `./drawio-skill/skills/drawio-skill/scripts/validate.py` without invoking draw.io desktop.
